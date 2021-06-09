@@ -3,7 +3,7 @@
 ;;;   PC Expert System
 ;;;
 ;;;     This expert system diagnoses some simple
-;;;     problems with a PX.
+;;;     problems with a PC.
 ;;;
 ;;;	Authors:
 ;;;	Hackl Dominik
@@ -85,7 +85,7 @@
    (motherboard_working yes)
    (not (repair ?))
    =>
-   (assert(after_disconnect_parts (yes-or-no-p "Try to disconnect various peripherals. Is the PC now working (yes/no)? "))))
+   (assert(after_disconnect_parts (ask-question "Try to disconnect various peripherals. After disconnecting which part is the pc working? (disk/CPU/GPU/RAM) " disk gpu cpu ram))))
 
 (defrule determine-os_starts-state ""
    (pc_starts yes)
@@ -166,7 +166,13 @@
          (and  (pc_starts yes)
                (os_starts yes)
                (repair_mode no)
-               (login_screen no)))
+               (login_screen no))
+         (and  (pc_starts no)
+               (power_connection yes)
+               (power_supply_working yes)
+               (bios_battery_light yes)
+               (motherboard_working yes)
+               (after_disconnect_parts disk)))
    (not (repair ?))
    =>
    (assert(usb_adapter_access (yes-or-no-p "Can the disk be accessed via an USB-adapter (yes/no)? "))))
@@ -256,17 +262,23 @@
    =>
    (assert (repair "Replace the motherboard.")))
 
-(defrule part_defect ""
-   (after_disconnect_parts yes)
+(defrule part_defect_gpu ""
+   (after_disconnect_parts gpu)
    (not (repair ?))
    =>
-   (assert (repair "Replace the defective part.")))
+   (assert (repair "Replace GPU. Use internal GPU in the meantime.")))
 
-(defrule pc_defect ""
-   (after_disconnect_parts no)
+(defrule part_defect_cpu ""
+   (after_disconnect_parts cpu)
    (not (repair ?))
    =>
-   (assert (repair "PC is defective.")))
+   (assert (repair "Replace CPU.")))
+
+(defrule part_defect_ram ""
+   (after_disconnect_parts ram)
+   (not (repair ?))
+   =>
+   (assert (repair "Remove faulty RAM stick.")))
 
 (defrule no_bios_access ""
    (bios_access no)
